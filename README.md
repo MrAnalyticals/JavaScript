@@ -1,1 +1,1 @@
-See the Intro document.
+JavaScript code projects here.
