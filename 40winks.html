@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boeing 747 Radar Scan</title>
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #00ff41;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .radar-container {
+      width: 80vmin;
+      height: 80vmin;
+      border: 4px solid #00ff41;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 0 0 20px #00ff41;
+      background: radial-gradient(circle, #000 0%, #000 50%, #00ff4133 70%, transparent 100%);
+      overflow: hidden;
+    }
+
+    .radar-circle {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid #00ff41;
+      box-sizing: border-box;
+      opacity: 0.3;
+    }
+
+    .radar-circle:nth-child(1) {
+      transform: scale(0.66);
+    }
+
+    .radar-circle:nth-child(2) {
+      transform: scale(0.33);
+    }
+
+    .radar-line {
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ff41);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: left;
+      animation: rotateLine 4s linear infinite;
+    }
+
+    @keyframes rotateLine {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .jumbo-container {
+      position: absolute;
+      top: 50%;
+      width: 150%;
+      left: -25%;
+      height: 120px;
+      transform: translateY(-50%);
+      animation: moveHorizontal 40s linear infinite;
+    }
+
+    @keyframes moveHorizontal {
+      0% {
+        transform: translateX(-150%) translateY(-50%);
+      }
+      100% {
+        transform: translateX(150%) translateY(-50%);
+      }
+    }
+
+.jumbo-jet {
+  position: absolute;
+  width: 200px;
+  height: auto;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 15px #00ff41);
+  background: transparent !important;   /* ensures no background */
+  mix-blend-mode: lighten;              /* makes black fully transparent */
+}
+
+  </style>
+</head>
+<body>
+  <div class="radar-container">
+    <div class="radar-circle"></div>
+    <div class="radar-circle"></div>
+    <div class="radar-line"></div>
+    <div class="jumbo-container">
+      <!-- IMPORTANT: put 747b.png in same folder as this HTML -->
+      <img src="./747b.png" alt="747 Jet" class="jumbo-jet">
+    </div>
+  </div>
+
+  <script>
+    const radarLine = document.querySelector('.radar-line');
+    const jumboJet = document.querySelector('.jumbo-jet');
+    const radarContainer = document.querySelector('.radar-container');
+
+    function updateJumboVisibility() {
+      const lineTransform = window.getComputedStyle(radarLine).getPropertyValue('transform');
+      const matrix = new DOMMatrix(lineTransform);
+      let angle = Math.atan2(matrix.m21, matrix.m11) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+
+      const jumboRect = jumboJet.getBoundingClientRect();
+      const radarRect = radarContainer.getBoundingClientRect();
+      const radarCenterX = radarRect.left + radarRect.width / 2;
+
+      const horizontalAngleTolerance = 15;
+      const isHorizontal =
+        (angle >= 0 && angle < horizontalAngleTolerance) ||
+        (angle > 360 - horizontalAngleTolerance) ||
+        (angle > 180 - horizontalAngleTolerance && angle < 180 + horizontalAngleTolerance);
+
+      if (isHorizontal) {
+        const jumboCenterX = jumboRect.left + jumboRect.width / 2;
+        const distanceX = Math.abs(jumboCenterX - radarCenterX);
+
+        const radarRadius = radarContainer.offsetWidth / 2;
+        const proximity = Math.max(0, 1 - distanceX / (radarRadius * 1.5));
+
+        jumboJet.style.opacity = 0.6 + 0.4 * proximity;
+        jumboJet.style.filter = `drop-shadow(0 0 ${10 + 20 * proximity}px rgba(0, 255, 65, ${proximity}))`;
+      } else {
+        jumboJet.style.opacity = 0.6; // faintly visible when not hit by radar
+        jumboJet.style.filter = 'drop-shadow(0 0 10px rgba(0,255,65,0.5))';
+      }
+    }
+
+    setInterval(updateJumboVisibility, 16);
+  </script>
+</body>
+</html>
